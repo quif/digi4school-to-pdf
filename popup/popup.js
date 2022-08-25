@@ -35,19 +35,11 @@ browser.tabs
 convertBtn.onclick = () => {
   console.log('Button was clicked', browser.tabs);
 
-  Promise.all([
-    browser.tabs.insertCSS({ file: '/libraries/materialize/materialize.min.css' }),
-    browser.tabs.executeScript({ file: '/libraries/pdfkit.standalone.min.js' }),
-    browser.tabs.executeScript({ file: '/libraries/svg-to-pdfkit.min.js' }),
-    browser.tabs.executeScript({ file: '/libraries/saveSvgAsPng.js' }),
-    browser.tabs.executeScript({ file: '/libraries/materialize/materialize.min.js' })
-  ])
-    .then(() => browser.tabs.executeScript({ file: '/scripts/inject.js' }))
-    .then(() => {
-      browser.runtime.sendMessage({ type: 'update_tabid', tabid });
-      console.log('inserted all scripts');
-      window.close();
-    });
+  browser.tabs.executeScript({ file: '/scripts/inject.js' }).then(() => {
+    browser.runtime.sendMessage({ type: 'update_tabid', tabid });
+    console.log('inserted all scripts');
+    window.close();
+  });
 };
 
 const uiCurrentPage = document.getElementById('cur-page');
