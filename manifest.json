@@ -1,8 +1,6 @@
 {
-
   "manifest_version": 2,
   "name": "digi4school to pdf",
-  "name": "digi4school to pdf fix",
   "version": "1.6",
 
   "author": "strukteon",
@@ -16,10 +14,7 @@
     "512": "assets/icon-512.png"
   },
 
-  "permissions": [
-    "activeTab",
-    "tabs"
-  ],
+  "permissions": ["activeTab", "tabs", "scripting"],
 
   "browser_action": {
     "default_icon": "assets/icon-64.png",
@@ -27,19 +22,22 @@
     "default_popup": "popup/popup.html"
   },
 
-  "content_scripts": [{
-    "matches": ["https://*/ebook/*"],
-    "js": [
-      "libraries/browser-polyfill.min.js",
-      "scripts/d4s_detection.js"
-    ]
-  }],
+  "content_scripts": [
+    {
+      "matches": ["https://*/ebook/*"],
+      "js": [
+        "libraries/pdfkit.standalone.min.js",
+        "libraries/svg-to-pdfkit.min.js",
+        "libraries/saveSvgAsPng.js",
+        "libraries/materialize/materialize.min.js",
+        "scripts/d4s_detection.js",
+        "scripts/inject.js"
+      ],
+      "css": ["libraries/materialize/materialize.min.css"]
+    }
+  ],
 
   "background": {
-    "scripts": [
-      "libraries/browser-polyfill.min.js",
-      "scripts/background.js"
-    ]
+    "scripts": ["libraries/browser-polyfill.min.js", "scripts/background.js"]
   }
-
 }
