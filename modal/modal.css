@@ -1,12 +1,12 @@
-.digi4school-to-pdf-modal .modal-content {
+.d4s2pdf-modal .modal-content {
     padding: 0 !important;
 }
 
-.digi4school-to-pdf-modal .modal-content .header {
+.d4s2pdf-modal .modal-content .header {
     padding: 24px;
 }
 
-.digi4school-to-pdf-modal .modal-content .header > span {
+.d4s2pdf-modal .modal-content .header > span {
     font-weight: bold;
     font-style: italic;
     font-size: x-large;
@@ -15,36 +15,36 @@
     margin: .125rem;
 }
 
-.digi4school-to-pdf-modal .modal-content .content {
+.d4s2pdf-modal .modal-content .content {
     padding: 24px;
     background-color: #40b7ea;
     color: white;
 }
 
-.digi4school-to-pdf-modal .modal-content .input-field, 
-.digi4school-to-pdf-modal .modal-content .input-field input {
+.d4s2pdf-modal .modal-content .input-field, 
+.d4s2pdf-modal .modal-content .input-field input {
     border-bottom-color: white !important;
     color: white !important;
 }
 
-.digi4school-to-pdf-modal .modal-content .select-wrapper, 
-.digi4school-to-pdf-modal .modal-content .select-wrapper .select-dropdown,
-.digi4school-to-pdf-modal .modal-content .select-wrapper svg,
-.digi4school-to-pdf-modal .modal-content label {
+.d4s2pdf-modal .modal-content .select-wrapper, 
+.d4s2pdf-modal .modal-content .select-wrapper .select-dropdown,
+.d4s2pdf-modal .modal-content .select-wrapper svg,
+.d4s2pdf-modal .modal-content label {
     color: white !important;
 }
 
 
 
-.digi4school-to-pdf-modal .modal-footer {
+.d4s2pdf-modal .modal-footer {
     background-color: #40b7ea !important;
 }
 
-.digi4school-to-pdf-modal .modal-footer .modal-close {
+.d4s2pdf-modal .modal-footer .modal-close {
     margin-right: 0.5rem;
 }
 
-.digi4school-to-pdf-modal .modal-footer .btn-d4s2pdf {
+.d4s2pdf-modal .modal-footer .btn-d4s2pdf {
     background-color: #ff6600 !important;
     font-weight: bold;
     font-style: italic;
@@ -61,35 +61,35 @@
     color: white !important;
 }
 
-.digi4school-to-pdf-modal .row {
+.d4s2pdf-modal .row {
     margin: 0 !important;
 }
 
-.digi4school-to-pdf-modal .d4s2pdf-error {
+.d4s2pdf-modal .d4s2pdf-error {
     color: #ff6600;
 }
 
 
 
-.digi4school-to-pdf-modal input[type="range"] {
+.d4s2pdf-modal input[type="range"] {
     border: none;
 }
 
-.digi4school-to-pdf-modal input[type="range"]::-moz-range-thumb {
+.d4s2pdf-modal input[type="range"]::-moz-range-thumb {
     background-color: #ff6600;
 }
 
-.digi4school-to-pdf-modal input[type="range"]::-moz-range-track {
+.d4s2pdf-modal input[type="range"]::-moz-range-track {
     background-color: rgba(255, 255, 255, .5);
 }
 
-.digi4school-to-pdf-modal input[type="number"] {
+.d4s2pdf-modal input[type="number"] {
     -webkit-appearance: textfield;
     -moz-appearance: textfield;
     appearance: textfield;
 }
 
-.digi4school-to-pdf-modal input[type=number]::-webkit-inner-spin-button,
-.digi4school-to-pdf-modal input[type=number]::-webkit-outer-spin-button {
+.d4s2pdf-modal input[type=number]::-webkit-inner-spin-button,
+.d4s2pdf-modal input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
 }

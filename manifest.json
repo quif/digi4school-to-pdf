@@ -30,10 +30,14 @@
         "libraries/svg-to-pdfkit.min.js",
         "libraries/saveSvgAsPng.js",
         "libraries/materialize/materialize.min.js",
+        "modal/showModal.js",
         "scripts/d4s_detection.js",
         "scripts/inject.js"
       ],
-      "css": ["libraries/materialize/materialize.min.css"]
+      "css": [
+        "libraries/materialize/materialize.min.css",
+        "modal/modal.css"
+      ]
     }
   ],
 

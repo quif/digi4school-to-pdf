@@ -1,11 +1,43 @@
 (() => {
-  let pages;
+  /**
+   * Sends a GET-Request using the XHR-Api
+   * @param {string} url
+   * @returns {Promise<any>}
+   */
+  function xhrGet(url) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
 
-  browser;
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState !== XMLHttpRequest.DONE) {
+          return;
+        }
 
-  console.log('Browser tabs', browser.tabs);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response);
+        }
 
-  browser.tabs.executeScript({ file: '/modal/showModal.js' }).then((modal) => {
+        if (xhr.status >= 300) {
+          reject(xhr.statusText);
+        }
+      };
+
+      xhr.open('GET', url);
+      xhr.send();
+    });
+  }
+
+  /**
+   * @param {string} modalId
+   */
+  function runInject(modalId) {
+    /** @type {HTMLDivElement} */
+    const modal = document.querySelector(`div#${modalId}`);
+
+    let pages;
+
+    browser;
+
     M.Modal.init(document.querySelectorAll('.modal'));
     M.FormSelect.init(document.querySelectorAll('#savemethod'));
 
@@ -65,8 +97,7 @@
 
     const remove_custom_css = () => {
       instance_modal.close();
-      modal.remove();
-      browser.runtime.sendMessage({ type: 'remove_custom_css' });
+      browser.runtime.sendMessage({ type: 'remove-modal' });
     };
 
     btn_convert.onclick = () => {
@@ -332,33 +363,15 @@
         });
       }
     }
+  }
 
-    /**
-     * Sends a GET-Request using the XHR-Api
-     * @param {string} url
-     * @returns {Promise<any>}
-     */
-    function xhrGet(url) {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-
-        xhr.onreadystatechange = () => {
-          if (xhr.readyState !== XMLHttpRequest.DONE) {
-            return;
-          }
-
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(xhr.response);
-          }
-
-          if (xhr.status >= 300) {
-            reject(xhr.statusText);
-          }
-        };
-
-        xhr.open('GET', url);
-        xhr.send();
-      });
+  function onMessage(message) {
+    if (message.type === 'run-inject' && typeof message.modalId === 'string') {
+      runInject(message.modalId);
     }
-  });
+  }
+
+  if (!browser.runtime.onMessage.hasListener(onMessage)) {
+    browser.runtime.onMessage.addListener(onMessage);
+  }
 })();

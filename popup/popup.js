@@ -33,12 +33,12 @@ browser.tabs
   });
 
 convertBtn.onclick = () => {
-  console.log('Button was clicked', browser.tabs);
-
-  browser.tabs.executeScript({ file: '/scripts/inject.js' }).then(() => {
-    browser.runtime.sendMessage({ type: 'update_tabid', tabid });
-    console.log('inserted all scripts');
-    window.close();
+  browser.tabs.sendMessage(tabid, { type: 'show-modal' }).then((result) => {
+    browser.tabs.sendMessage(tabid, { type: 'run-inject', modalId: result.modalId }).then(() => {
+      browser.runtime.sendMessage({ type: 'update_tabid', tabid });
+      console.log('Ran inject.js');
+      window.close();
+    });
   });
 };
 
