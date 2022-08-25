@@ -12,7 +12,7 @@
       <div class="content row">
 
         <div class="input-field col s12">
-          <select id="savemethod">
+          <select id="save-method-select">
             <option value="png">Als PNG (Rasterisiert)</option>
             <option value="vector" selected>Vektorgrafik (Hochauflösend)</option>
           </select>

@@ -21,35 +21,35 @@ browser.windows.onFocusChanged.addListener(updateIcon);
 
 let converting = false;
 let convertingTab = -1;
-let convertProgress = {
+let conversionProgress = {
   title: '',
-  from_page: -1,
-  cur_page: -1,
-  to_page: -1,
-  page_count: -1,
-  time_begin: 0
+  fromPage: -1,
+  toPage: -1,
+  curPage: -1,
+  pageCount: -1,
+  timestampStart: 0
 };
 
 browser.runtime.onMessage.addListener((message) => {
   switch (message.type) {
-    case 'update_tabid':
+    case 'update-tab-id':
       convertingTab = message.tabid;
       break;
     case 'start_converting':
       converting = true;
-      convertProgress = message.convert_progress;
+      conversionProgress = message.conversionProgress;
       break;
     case 'stop_converting':
       converting = false;
       convertingTab = -1;
       break;
-    case 'is_converting':
+    case 'is-converting':
       return Promise.resolve({ converting, converting_tab: convertingTab });
-    case 'get_progress':
-      return Promise.resolve({ convert_progress: convertProgress });
+    case 'get-progress':
+      return Promise.resolve({ conversionProgress });
     case 'update_progress':
-      convertProgress = message.convert_progress;
-      if (convertProgress.cur_page === convertProgress.to_page) {
+      conversionProgress = message.conversionProgress;
+      if (conversionProgress.curPage === conversionProgress.toPage) {
         converting = false;
         convertingTab = -1;
       }
