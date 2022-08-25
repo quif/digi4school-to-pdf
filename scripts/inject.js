@@ -281,7 +281,7 @@
                                     .replace(url.substring(`${base_url}${page}/`.length), uri);
                             }
                             let xml_doc = parser.parseFromString(updated_response, "text/xml");
-                            let svg_html = xml_doc.rootElement.outerHTML;
+                            let svg_html = xml_doc.documentElement.outerHTML;
                             console.log("before add page")
 
                             pdf_doc.addPage();
