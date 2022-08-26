@@ -47,7 +47,7 @@ browser.runtime.onMessage.addListener((message) => {
       return Promise.resolve({ converting, converting_tab: convertingTab });
     case 'get-progress':
       return Promise.resolve({ conversionProgress });
-    case 'update_progress':
+    case 'update-progress':
       conversionProgress = message.conversionProgress;
       if (conversionProgress.curPage === conversionProgress.toPage) {
         converting = false;

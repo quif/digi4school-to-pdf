@@ -294,7 +294,7 @@
 
       conversionProgress.curPage = page;
       browser.runtime.sendMessage({
-        type: 'update_progress',
+        type: 'update-progress',
         conversionProgress
       });
     }
