@@ -1,0 +1,40 @@
+{
+  "name": "digi4school-to-pdf",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "build:dev": "webpack --config webpack.config.js --mode development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quif/digi4school-to-pdf.git"
+  },
+  "author": "MrCodingB",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/quif/digi4school-to-pdf/issues"
+  },
+  "homepage": "https://github.com/quif/digi4school-to-pdf#readme",
+  "devDependencies": {
+    "@types/chrome": "^0.0.195",
+    "@types/materialize-css": "^1.0.11",
+    "@types/pdfkit": "^0.12.6",
+    "@types/svg-to-pdfkit": "^0.1.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.1",
+    "node-sass": "^7.0.1",
+    "sass-loader": "^13.0.2",
+    "style-loader": "^3.3.1",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.8.2",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "materialize-css": "^1.0.0",
+    "pdfkit": "^0.13.0",
+    "save-svg-as-png": "^1.4.17",
+    "svg-to-pdfkit": "^0.1.8"
+  }
+}

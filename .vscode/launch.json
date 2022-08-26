@@ -9,8 +9,30 @@
             "type": "firefox",
             "request": "launch",
             "reAttach": false,
-            "addonPath": "${workspaceFolder}",
-            "url": "https://a.digi4school.at"
+            "addonPath": "${workspaceFolder}/dist",
+            "url": "https://a.digi4school.at",
+            "preLaunchTask": "npm: build dev",
+            "pathMappings": [
+                {
+                    "url": "webpack://digi4school-to-pdf",
+                    "path": "${workspaceFolder}"
+                }
+            ]
+        },
+        {
+            "name": "Launch WebExtension (nvs)",
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": false,
+            "addonPath": "${workspaceFolder}/dist",
+            "url": "https://a.digi4school.at",
+            "preLaunchTask": "nvs: build dev",
+            "pathMappings": [
+                {
+                    "url": "webpack://digi4school-to-pdf",
+                    "path": "${workspaceFolder}"
+                }
+            ]
         }
     ]
 }

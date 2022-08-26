@@ -1,3 +1,4 @@
+export const modalCss = /*html*/`<style>
 .d4s2pdf-modal .modal-content {
     padding: 0 !important;
 }
@@ -93,3 +94,4 @@
 .d4s2pdf-modal input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
 }
+</style>`;
