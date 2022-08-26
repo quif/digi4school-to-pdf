@@ -91,7 +91,7 @@ function onIsConverting(msg) {
   setInterval(updateProgressBar, 250);
 
   convertBtn.onclick = () =>
-    browser.tabs.sendMessage(msg.converting_tab, { type: 'cancel_convert' }).then(window.close);
+    browser.tabs.sendMessage(msg.converting_tab, { type: 'cancel-conversion' }).then(window.close);
 }
 
 browser.runtime.sendMessage({ type: 'is-converting' }).then((msg) => {

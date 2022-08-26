@@ -2,30 +2,70 @@
 
 (() => {
   /**
+   * @param {string} url
+   * @param {(xhr: XMLHttpRequest) => void} setupRequest
+   * @returns {void}
+   */
+  function xhrGetGeneric(url, setupRequest) {
+    const xhr = new XMLHttpRequest();
+
+    setupRequest(xhr);
+
+    xhr.open('GET', url);
+    xhr.send();
+  }
+
+  /**
    * Sends a GET-Request using the XHR-Api
    * @param {string} url
    * @returns {Promise<any>}
    */
   function xhrGet(url) {
     return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
+      xhrGetGeneric(url, (xhr) => {
+        xhr.onerror = reject;
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState !== XMLHttpRequest.DONE) {
+            return;
+          }
 
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState !== XMLHttpRequest.DONE) {
-          return;
-        }
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(xhr.response);
+          }
 
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(xhr.response);
-        }
+          if (xhr.status >= 300) {
+            reject(xhr.statusText);
+          }
+        };
+      });
+    });
+  }
 
-        if (xhr.status >= 300) {
-          reject(xhr.statusText);
-        }
-      };
+  /**
+   * Used to parse images in svgs to pure data uris
+   * @param {string} url
+   * @returns {Promise<{ uri: string; url: string }>}
+   */
+  function toDataUri(url) {
+    return new Promise((resolve, reject) => {
+      xhrGetGeneric(url, (xhr) => {
+        xhr.responseType = 'blob';
 
-      xhr.open('GET', url);
-      xhr.send();
+        xhr.onerror = reject;
+        xhr.onload = function () {
+          const reader = new FileReader();
+
+          reader.onerror = reject;
+          reader.onloadend = () => {
+            resolve({
+              uri: typeof reader.result === 'string' ? reader.result : '',
+              url
+            });
+          };
+
+          reader.readAsDataURL(xhr.response);
+        };
+      });
     });
   }
 
@@ -35,37 +75,119 @@
    * @returns {Promise<string>}
    */
   async function getPageUrl(baseUrl, page) {
-    return xhrGet(`${baseUrl}${page}/${page}.svg`)
+    return await xhrGet(`${baseUrl}${page}/${page}.svg`)
       .then(() => `${baseUrl}${page}/${page}`)
       .catch(() => xhrGet(`${baseUrl}${page}.svg`))
       .then(() => `${baseUrl}${page}`);
   }
 
   /**
-   * Used to parse images in svgs to pure data uris
-   * @param {string} url
-   * @returns {Promise<{ uri: string; url: string }>}
+   * @param {PDFDocument} doc
+   * @param {string} svg
+   * @returns {Promise<void>}
    */
-  function toDataUri(url) {
-    return new Promise((resolve) => {
-      const xhr = new XMLHttpRequest();
-      xhr.responseType = 'blob';
+  function addPageAsVector(doc, svg) {
+    return new Promise((resolve, reject) => {
+      try {
+        SVGtoPDF(doc, svg, 0, 0, { assumePt: true });
+        resolve();
+      } catch {
+        reject({
+          msg:
+            'Anscheinend funktioniert die Speichermethode "Vektor" bei diesem Buch ' +
+            'nicht, bitte versuche es erneut und wähle eine andere aus.'
+        });
+      }
+    });
+  }
 
-      xhr.onload = function () {
-        const reader = new FileReader();
+  /**
+   * @param {PDFDocument} doc
+   * @param {string} svg
+   * @param {number} scale
+   * @returns {Promise<void>}
+   */
+  function addPageAsPng(doc, svg, scale) {
+    return new Promise((resolve, reject) => {
+      const template = document.createElement('div');
+      template.innerHTML = svg;
 
-        reader.onloadend = () => {
-          resolve({
-            uri: typeof reader.result === 'string' ? reader.result : '',
-            url
+      const svgElement = template.childNodes[0];
+      svgElement.style.background_color = 'white';
+
+      svgAsPngUri(svgElement, { scale }, (uri) => {
+        // reject "data:," uris, as an error occurred while converting!
+        if (uri === 'data:,') {
+          reject({
+            msg:
+              'Anscheinend funktioniert die Speichermethode "PNG" bei diesem Buch ' +
+              'nicht, bitte versuche es erneut und wähle eine andere aus.'
           });
+          return;
+        }
+
+        doc.image(uri, 0, 0);
+
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * @param {string} baseUrl
+   * @param {Document} xmlDocument
+   * @returns {Promise<{ uri: string; url: string }[]>}
+   */
+  async function getAllImageUrisFromXmlDocument(baseUrl, xmlDocument) {
+    /** @type {Promise<{ uri: string; url: string }>[]} */
+    const uriImagePromises = [];
+
+    for (const c of xmlDocument.children[0].children) {
+      if (c.localName === 'image') {
+        const href = c.attributes['xlink:href'].textContent;
+        uriImagePromises.push(toDataUri(`${baseUrl}${href}`));
+      }
+    }
+
+    return await Promise.all(uriImagePromises);
+  }
+
+  /**
+   * @param {string} baseUrl
+   * @param {string} svgText
+   * @returns {Promise<string>}
+   */
+  async function parseSvgHtml(baseUrl, svgText) {
+    const parser = new DOMParser();
+
+    let updatedResponse = svgText;
+    let xmlDocument = parser.parseFromString(svgText, 'text/xml');
+
+    const uris = await getAllImageUrisFromXmlDocument(baseUrl, xmlDocument);
+    for (const { uri, url } of uris) {
+      // substring in order to get the original path from the svg
+      updatedResponse = updatedResponse.replace(url.substring(baseUrl.length), uri);
+    }
+
+    xmlDocument = parser.parseFromString(updatedResponse, 'text/xml');
+
+    return xmlDocument.documentElement.outerHTML;
+  }
+
+  /**
+   * @param {string} pageUrl
+   * @returns {Promise<string>}
+   */
+  async function downloadPageSvg(pageUrl) {
+    return new Promise((resolve, reject) => {
+      xhrGetGeneric(`${pageUrl}.svg`, (xhr) => {
+        xhr.onerror = reject;
+        xhr.onreadystatechange = async () => {
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+            resolve(xhr.responseText);
+          }
         };
-
-        reader.readAsDataURL(xhr.response);
-      };
-
-      xhr.open('GET', url);
-      xhr.send();
+      });
     });
   }
 
@@ -81,7 +203,6 @@
    * }} options
    */
   async function generatePdf(options) {
-    const http = new XMLHttpRequest();
     const url = new URL(window.location);
     const baseUrl = (url.origin + url.pathname).replace(/\/[^\/]+?$/, '/');
 
@@ -106,9 +227,7 @@
     pdfDoc.pipe({
       write: (chunk) => chunks.push(chunk),
       end: () => {
-        const pdfBlob = new Blob(chunks, {
-          type: 'application/octet-stream'
-        });
+        const pdfBlob = new Blob(chunks, { type: 'application/octet-stream' });
         const blobUrl = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = blobUrl;
@@ -131,36 +250,49 @@
     };
 
     browser.runtime.sendMessage({
-      type: 'start_converting',
+      type: 'start-conversion',
       conversionProgress
     });
 
     let canceled = false;
     browser.runtime.onMessage.addListener((msg) => {
-      if (msg.type === 'cancel_convert') {
+      if (msg.type === 'cancel-conversion') {
         canceled = true;
       }
     });
 
     window.onbeforeunload = () => {
-      browser.runtime.sendMessage({ type: 'stop_converting' });
+      browser.runtime.sendMessage({ type: 'stop-conversion' });
       pdfDoc.end();
     };
 
-    for (let i = options.fromPage; i <= options.toPage; i++) {
+    let addPageCallback = addPageAsVector;
+    if (options.savemethod === 'png') {
+      addPageCallback = (doc, svg) => addPageAsPng(doc, svg, options.scale);
+    }
+
+    for (let page = options.fromPage; page <= options.toPage; page++) {
       if (canceled) {
         break;
       }
 
       try {
-        await downloadSvg(i);
+        const pageUrl = await getPageUrl(baseUrl, page);
+
+        const svgText = await downloadPageSvg(pageUrl);
+
+        const svgHtml = await parseSvgHtml(`${baseUrl}${page}/`, svgText);
+
+        pdfDoc.addPage();
+
+        await addPageCallback(pdfDoc, svgHtml);
       } catch (error) {
-        if (error.cancel) canceled = true;
+        canceled = true;
         if (error.msg) alert(error.msg);
         else console.error(error);
       }
 
-      conversionProgress.curPage = i;
+      conversionProgress.curPage = page;
       browser.runtime.sendMessage({
         type: 'update_progress',
         conversionProgress
@@ -169,121 +301,9 @@
 
     pdfDoc.end();
 
-    browser.runtime.sendMessage({ type: 'stop_converting' });
+    browser.runtime.sendMessage({ type: 'stop-conversion' });
 
     window.onbeforeunload = () => {};
-
-    /**
-     * @param {number} page
-     * @returns {Promise<any>}
-     */
-    function downloadSvg(page) {
-      return new Promise((resolve, reject) => {
-        getPageUrl(baseUrl, page).then((pageUrl) => {
-          if (pageUrl === '') {
-            reject({
-              msg: 'Die Seite ' + page + ' wurde nicht gefunden. Es kann sein, dass die URL anders ist, als erwartet.'
-            });
-          }
-
-          http.onreadystatechange = () => {
-            if (http.readyState !== XMLHttpRequest.DONE) {
-              return;
-            }
-
-            const parser = new DOMParser();
-
-            let updatedResponse = http.responseText;
-            const xmlDocument = parser.parseFromString(updatedResponse, 'text/xml');
-
-            /** @type {Promise<{ uri: string; url: string }>[]} */
-            const uriImagePromises = [];
-
-            for (const c of xmlDocument.children[0].children) {
-              if (c.localName === 'image') {
-                const href = c.attributes['xlink:href'].textContent;
-                uriImagePromises.push(toDataUri(`${baseUrl}${page}/${href}`));
-              }
-            }
-
-            Promise.all(uriImagePromises).then((uris) => {
-              for (const { uri, url } of uris) {
-                // substring in order to get the original path from the svg
-                updatedResponse = updatedResponse.replace(url.substring(`${baseUrl}${page}/`.length), uri);
-              }
-
-              const xml_doc = parser.parseFromString(updatedResponse, 'text/xml');
-              const svgHtml = xml_doc.documentElement.outerHTML;
-
-              pdfDoc.addPage();
-
-              let addPage = addPageAsVector;
-              if (options.savemethod === 'png') {
-                addPage = addPageAsPng;
-              }
-
-              addPage(pdfDoc, svgHtml)
-                .then(() => resolve(page))
-                .catch((error) => reject({ cancel: true, msg: error.msg, error }));
-            });
-          };
-
-          http.open('GET', `${pageUrl}.svg`);
-          http.send();
-        });
-      });
-
-      /**
-       * @param {PDFDocument} doc
-       * @param {string} svg
-       * @returns {Promise<void>}
-       */
-      function addPageAsVector(doc, svg) {
-        return new Promise((resolve, reject) => {
-          try {
-            SVGtoPDF(doc, svg, 0, 0, { assumePt: true });
-            resolve();
-          } catch {
-            reject({
-              msg:
-                'Anscheinend funktioniert die Speichermethode "Vektor" bei diesem Buch ' +
-                'nicht, bitte versuche es erneut und wähle eine andere aus.'
-            });
-          }
-        });
-      }
-
-      /**
-       * @param {PDFDocument} doc
-       * @param {string} svg
-       * @returns {Promise<void>}
-       */
-      function addPageAsPng(doc, svg) {
-        return new Promise((resolve, reject) => {
-          const template = document.createElement('div');
-          template.innerHTML = svg;
-
-          const svgElement = template.childNodes[0];
-          svgElement.style.background_color = 'white';
-
-          svgAsPngUri(svgElement, { scale: options.scale }, (uri) => {
-            // reject "data:," uris, as an error occurred while converting!
-            if (uri === 'data:,') {
-              reject({
-                msg:
-                  'Anscheinend funktioniert die Speichermethode "PNG" bei diesem Buch ' +
-                  'nicht, bitte versuche es erneut und wähle eine andere aus.'
-              });
-              return;
-            }
-
-            doc.image(uri, 0, 0);
-
-            resolve();
-          });
-        });
-      }
-    }
   }
 
   /**
@@ -369,17 +389,19 @@
       browser.runtime.sendMessage({ type: 'remove-modal' });
     }
 
-    convertButton.onclick = () => {
-      generatePdf({
-        title: document.title,
-        savemethod: saveMethodSelect.value === 'png' ? 'png' : 'vector',
-        scale: saveMethodSelect.value === 'png' ? Number(scaleInput.value) * 0.25 : 1,
-        fromPage: fromPageInput.value.length > 0 ? Number(fromPageInput.value) : 1,
-        toPage: toPageInput.value.length > 0 ? Number(toPageInput.value) : pageCount,
-        pageCount
-      });
-
-      removeCustomCss();
+    convertButton.onclick = async () => {
+      try {
+        await generatePdf({
+          title: document.title,
+          savemethod: saveMethodSelect.value === 'png' ? 'png' : 'vector',
+          scale: saveMethodSelect.value === 'png' ? Number(scaleInput.value) * 0.25 : 1,
+          fromPage: fromPageInput.value.length > 0 ? Number(fromPageInput.value) : 1,
+          toPage: toPageInput.value.length > 0 ? Number(toPageInput.value) : pageCount,
+          pageCount
+        });
+      } finally {
+        removeCustomCss();
+      }
     };
 
     document.getElementById('button-close').onclick = removeCustomCss;

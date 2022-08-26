@@ -35,11 +35,11 @@ browser.runtime.onMessage.addListener((message) => {
     case 'update-tab-id':
       convertingTab = message.tabid;
       break;
-    case 'start_converting':
+    case 'start-conversion':
       converting = true;
       conversionProgress = message.conversionProgress;
       break;
-    case 'stop_converting':
+    case 'stop-conversion':
       converting = false;
       convertingTab = -1;
       break;
