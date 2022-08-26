@@ -1,4 +1,4 @@
-import { addRuntimeListener, executeScript } from './chromeSupport';
+import { executeScript } from './chromeSupport';
 import { DetectionResult } from './models/detectionResult';
 
 const d4sQuery = 'div#jpedal div object[type="image/svg+xml"]';

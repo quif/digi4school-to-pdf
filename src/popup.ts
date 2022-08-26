@@ -89,9 +89,9 @@ export class PopUp {
   }
 
   private async openConversionModal(tabId: number): Promise<void> {
-    const modal = ConversionModal.show();
+    const result = await ConversionModal.show(tabId);
 
-    await chrome.tabs.sendMessage(tabId, { type: 'run-inject', modalId: modal.id });
+    await chrome.tabs.sendMessage(tabId, { type: 'run-inject', modalId: result.modalId });
     await chrome.runtime.sendMessage({ type: 'update-tab-id', tabid: tabId });
 
     window.close();
