@@ -1,4 +1,4 @@
-import { addRuntimeListener } from './chromeSupport';
+import { addRuntimeListener } from './chrome';
 import { ConversionProgress } from './models/conversionProgress';
 
 export class Storage {

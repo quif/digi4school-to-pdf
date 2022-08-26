@@ -1,4 +1,4 @@
-import { queryTabs } from './chromeSupport';
+import { queryTabs } from './chrome';
 
 export class IconUpdater {
   public static setup(): void {

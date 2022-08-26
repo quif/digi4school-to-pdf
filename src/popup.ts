@@ -1,6 +1,6 @@
 import { ConversionModal } from './modal/conversionModal';
 import { PopUpUi } from './popupUi';
-import { queryTabs, sendRuntimeMessage } from './chromeSupport';
+import { queryTabs, sendRuntimeMessage } from './chrome';
 import { detectDigi4School } from './digi4SchoolDetector';
 
 export class PopUp {
