@@ -72,13 +72,13 @@
   /**
    * @param {string} baseUrl
    * @param {number} page
-   * @returns {Promise<string>}
+   * @returns {Promise<(page: number) => string>}
    */
-  async function getPageUrl(baseUrl, page) {
+  async function getPageUrlFormatter(baseUrl, page) {
     return await xhrGet(`${baseUrl}${page}/${page}.svg`)
-      .then(() => `${baseUrl}${page}/${page}`)
+      .then(() => (page) => `${baseUrl}${page}/${page}`)
       .catch(() => xhrGet(`${baseUrl}${page}.svg`))
-      .then(() => `${baseUrl}${page}`);
+      .then(() => (page) => `${baseUrl}${page}`);
   }
 
   /**
@@ -271,15 +271,15 @@
       addPageCallback = (doc, svg) => addPageAsPng(doc, svg, options.scale);
     }
 
+    const getPageUrl = await getPageUrlFormatter(baseUrl, options.fromPage);
+
     for (let page = options.fromPage; page <= options.toPage; page++) {
       if (canceled) {
         break;
       }
 
       try {
-        const pageUrl = await getPageUrl(baseUrl, page);
-
-        const svgText = await downloadPageSvg(pageUrl);
+        const svgText = await downloadPageSvg(getPageUrl(page));
 
         const svgHtml = await parseSvgHtml(`${baseUrl}${page}/`, svgText);
 
